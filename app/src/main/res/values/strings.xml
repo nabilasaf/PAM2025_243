@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SIMADOS-TU</string>
+    <string name="username">UserName</string>
+    <string name="password">Password</string>
+    <string name="login_failed">Login failed. Please check your credentials.</string>
+    <string name="login_success">Login successful!</string>
+    <string name="login_loading">Logging in...</string>
+</resources>
