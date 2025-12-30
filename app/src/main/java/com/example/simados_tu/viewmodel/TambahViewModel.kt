@@ -25,12 +25,24 @@ class TambahViewModel(
     var namaDosen by mutableStateOf("")
     var jabatan by mutableStateOf("")
 
+    var isEntryValid by mutableStateOf(false)
+        private set
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
 
     // Helper Validasi: Cek apakah hanya huruf dan spasi
     private fun isAlphabetic(v: String) = v.all { it.isLetter() || it.isWhitespace() }
 
+    // Fungsi Validasi
+    fun updateValidasi() {
+        isEntryValid = nim.isNotBlank() &&
+                namaAsdos.isNotBlank() &&
+                kodeMk.isNotBlank() &&
+                namaMk.isNotBlank() &&
+                sks.isNotBlank() &&
+                nipNik.isNotBlank() &&
+                namaDosen.isNotBlank()
+    }
     // Fungsi Validasi Lengkap
     fun validate(): String? {
         // 1. Cek Kolom Kosong (Wajib diisi karena NOT NULL di DB)

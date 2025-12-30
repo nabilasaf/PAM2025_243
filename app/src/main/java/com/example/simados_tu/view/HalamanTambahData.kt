@@ -41,11 +41,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.simados_tu.R
 import com.example.simados_tu.viewmodel.TambahViewModel
 import com.example.simados_tu.viewmodel.provider.PenyediaViewModel
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,7 +59,7 @@ fun HalamanTambah(
     val focusManager = LocalFocusManager.current
     var showConfirmDialog by remember { mutableStateOf(false) }
 
-    // Dialog Konfirmasi
+    // Dialog Konfirmasi Simpan
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
@@ -69,11 +71,13 @@ fun HalamanTambah(
                         showConfirmDialog = false
                         viewModel.simpan(onSuccess = onNavigateBack)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B1F27))
+                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.green))
                 ) { Text("Ya, Simpan") }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDialog = false }) { Text("Batal") }
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text("Batal", color = colorResource(R.color.red))
+                }
             }
         )
     }
@@ -81,7 +85,7 @@ fun HalamanTambah(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tambah Data Asdos", color = Color.White) },
+                title = { Text("Tambah Data Asdos", color = Color.White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White)
@@ -102,20 +106,20 @@ fun HalamanTambah(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF5F5F5)),
+                    .background(Color.White),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Tampilan Peringatan jika validasi gagal (REQ-TAMBAH-09)
+                // Tampilan Peringatan teks (REQ-TAMBAH-09)
                 viewModel.errorMessage?.let {
                     item {
                         Surface(
-                            color = Color(0xFFFFEBEE),
+                            color = Color.White,
                             shape = RoundedCornerShape(8.dp),
-                            border = BorderStroke(1.dp, Color(0xFF7B1F27)),
+                            border = BorderStroke(1.dp, colorResource(R.color.red)),
                             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                         ) {
-                            Text(it, color = Color(0xFF7B1F27), modifier = Modifier.padding(12.dp), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(it, color = colorResource(R.color.red), modifier = Modifier.padding(12.dp), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -124,17 +128,24 @@ fun HalamanTambah(
                 item { Text("Informasi Asisten", fontWeight = FontWeight.Bold, color = Color.DarkGray) }
                 item {
                     CustomInputField(
-                        label = "NIM (Maks 15 Angka)",
+                        label = "NIM (Wajib)",
                         value = viewModel.nim,
-                        onValueChange = { if (it.all { char -> char.isDigit() } && it.length <= 15) viewModel.nim = it },
+                        onValueChange = {
+                            if (it.all { char -> char.isDigit() } && it.length <= 15)
+                                viewModel.nim = it
+                                viewModel.updateValidasi() },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }
                 item {
                     CustomInputField(
-                        label = "Nama Lengkap Asdos (Hanya Huruf)",
+                        label = "Nama Lengkap Asdos (Wajib)",
                         value = viewModel.namaAsdos,
-                        onValueChange = { if (it.all { char -> char.isLetter() || char.isWhitespace() } && it.length <= 100) viewModel.namaAsdos = it }
+                        onValueChange = {
+                            if (it.all { char -> char.isLetter() || char.isWhitespace() } && it.length <= 100)
+                                viewModel.namaAsdos = it
+                                viewModel.updateValidasi() },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                     )
                 }
 
@@ -142,16 +153,33 @@ fun HalamanTambah(
                 item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
                 item { Text("Informasi Mata Kuliah", fontWeight = FontWeight.Bold, color = Color.DarkGray) }
                 item {
-                    CustomInputField("Kode MK", viewModel.kodeMk, { viewModel.kodeMk = it })
+                    CustomInputField("Kode MK (Wajib)",
+                        viewModel.kodeMk,
+                        { viewModel.kodeMk = it.uppercase()
+                            viewModel.updateValidasi()
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                    )
                 }
                 item {
-                    CustomInputField("Nama Mata Kuliah", viewModel.namaMk, { viewModel.namaMk = it })
+                    CustomInputField("Nama Mata Kuliah (Wajib)",
+                        viewModel.namaMk,
+                        {
+                            viewModel.namaMk = it
+                            viewModel.updateValidasi()
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                    )
                 }
                 item {
                     CustomInputField(
-                        label = "SKS (Maks 10)",
+                        label = "SKS (Wajib)",
                         value = viewModel.sks,
-                        onValueChange = { if (it.all { char -> char.isDigit() }) viewModel.sks = it },
+                        onValueChange = {
+                            if (it.all { char -> char.isDigit() } && it.length <= 2)
+                                viewModel.sks = it
+                            viewModel.updateValidasi()
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }
@@ -161,24 +189,37 @@ fun HalamanTambah(
                 item { Text("Informasi Dosen", fontWeight = FontWeight.Bold, color = Color.DarkGray) }
                 item {
                     CustomInputField(
-                        label = "NIP/NIK (Maks 20 Angka)",
+                        label = "NIP/NIK (Wajib)",
                         value = viewModel.nipNik,
-                        onValueChange = { if (it.all { char -> char.isDigit() } && it.length <= 20) viewModel.nipNik = it },
+                        onValueChange = {
+                            if (it.all { char -> char.isDigit() } && it.length <= 20)
+                                viewModel.nipNik = it
+                            viewModel.updateValidasi()
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }
                 item {
                     CustomInputField(
-                        label = "Nama Dosen Pengampu (Hanya Huruf)",
+                        label = "Nama Dosen Pengampu (Wajib)",
                         value = viewModel.namaDosen,
-                        onValueChange = { if (it.all { char -> char.isLetter() || char.isWhitespace() } && it.length <= 100) viewModel.namaDosen = it }
+                        onValueChange = {
+                            if (it.all { char -> char.isLetter() || char.isWhitespace() } && it.length <= 100)
+                                viewModel.namaDosen = it
+                            viewModel.updateValidasi()
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                     )
                 }
                 item {
                     CustomInputField(
-                        label = "Jabatan (Hanya Huruf)",
+                        label = "Jabatan",
                         value = viewModel.jabatan,
-                        onValueChange = { if (it.all { char -> char.isLetter() || char.isWhitespace() } && it.length <= 50) viewModel.jabatan = it }
+                        onValueChange = {
+                            if (it.all { char -> char.isLetter() || char.isWhitespace() } && it.length <= 50)
+                                viewModel.jabatan = it
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                     )
                 }
 
@@ -188,12 +229,15 @@ fun HalamanTambah(
                     Button(
                         onClick = {
                             focusManager.clearFocus()
-                            val error = viewModel.validate()
-                            if (error == null) showConfirmDialog = true else viewModel.errorMessage = error
+                            showConfirmDialog = true // Langsung tampilkan konfirmasi karena tombol sudah pasti valid
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B1F27))
+                        enabled = viewModel.isEntryValid && !viewModel.isLoading,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.red),
+                            disabledContainerColor = Color.Gray // Warna saat tombol mati
+                        )
                     ) {
                         if (viewModel.isLoading) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
@@ -203,35 +247,6 @@ fun HalamanTambah(
                     }
                 }
             }
-        }
-    }
-
-    @Composable
-    fun CustomInputField(
-        label: String,
-        value: String,
-        onValueChange: (String) -> Unit,
-        keyboardOptions: KeyboardOptions = KeyboardOptions.Default
-    ) {
-        Column {
-            Text(
-                text = label,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                keyboardOptions = keyboardOptions,
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White
-                )
-            )
         }
     }
 }
