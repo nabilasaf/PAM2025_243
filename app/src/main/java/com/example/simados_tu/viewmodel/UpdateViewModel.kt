@@ -37,9 +37,13 @@ class UpdateViewModel(
                 val token = tokenManager.getToken.first()
                 if (token != null) {
                     val data = repositoriSimados.getDetailById(token, idMaster)
-                    // Konversi data master ke UI state dan jalankan validasi awal
+                    // Konversi data master ke UI state
                     val loadedState = data.toUpdateUiState()
-                    uiState = loadedState.copy(isEntryValid = validateInput(loadedState))
+                    // Simpan sebagai originalData untuk tracking perubahan
+                    uiState = loadedState.copy(
+                        originalData = loadedState,
+                        isEntryValid = false  // Awalnya false karena belum ada perubahan
+                    )
                 }
             } catch (e: Exception) {
                 uiState = uiState.copy(errorMessage = "Gagal memuat data lama: ${e.message}")
@@ -47,9 +51,9 @@ class UpdateViewModel(
         }
     }
 
-    // Fungsi Validasi: Memastikan semua field wajib tidak kosong
+    // Fungsi Validasi: Memastikan semua field wajib tidak kosong DAN ada perubahan data
     private fun validateInput(uiState: UpdateUiState): Boolean {
-        return with(uiState) {
+        val fieldsValid = with(uiState) {
             nim.isNotBlank() &&
                     nama_lengkap.isNotBlank() &&
                     kode_mk.isNotBlank() &&
@@ -58,11 +62,17 @@ class UpdateViewModel(
                     nip_nik.isNotBlank() &&
                     nama_dosen.isNotBlank()
         }
+        // Button hanya enabled jika field valid DAN ada perubahan
+        return fieldsValid && uiState.hasDataChanged()
     }
 
     // Fungsi untuk memperbarui state setiap kali user mengetik di form
     fun updateUiState(newState: UpdateUiState) {
-        uiState = newState.copy(isEntryValid = validateInput(newState))
+        // Pertahankan originalData dari state sebelumnya
+        uiState = newState.copy(
+            originalData = uiState.originalData,
+            isEntryValid = validateInput(newState.copy(originalData = uiState.originalData))
+        )
     }
 
     // REQ-UPDATE-05: Mengirim data yang diperbarui ke backend (MySQL)
