@@ -6,7 +6,7 @@ import com.example.simados_tu.modeldata.StaffResponse
 
 interface RepositoriSimados {
     // Fungsi untuk Login
-    suspend fun login(username: String, password: String): LoginResponse
+    suspend fun login(email: String, password: String): LoginResponse
 
     // Fungsi untuk ambil data list (butuh token)
     suspend fun getMasterList(token: String): List<MasterResponse>
