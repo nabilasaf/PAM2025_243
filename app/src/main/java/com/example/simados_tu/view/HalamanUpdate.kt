@@ -99,7 +99,8 @@ fun HalamanUpdate(
                         if (input.all { it.isLetter() || it.isWhitespace() } && input.length <= 100) {
                             viewModel.updateUiState(state.copy(nama_lengkap = input))
                         }
-                    }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                 )
             }
 
@@ -122,10 +123,11 @@ fun HalamanUpdate(
                     label = "Nama Mata Kuliah",
                     value = state.nama_mk,
                     onValueChange = { input ->
-                        if (input.length <= 100) {
+                        if (input.all { it.isLetter() }&& input.length <= 100) {
                             viewModel.updateUiState(state.copy(nama_mk = input))
                         }
-                    }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                 )
             }
             item {
@@ -133,7 +135,7 @@ fun HalamanUpdate(
                     label = "SKS",
                     value = state.sks,
                     onValueChange = { input ->
-                        // Samakan: Hanya angka (max 2 digit untuk keamanan DB)
+                        // Hanya angka
                         if (input.all { it.isDigit() } && input.length <= 2) {
                             viewModel.updateUiState(state.copy(sks = input))
                         }
