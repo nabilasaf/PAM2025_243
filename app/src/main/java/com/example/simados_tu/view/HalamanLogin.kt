@@ -67,11 +67,11 @@ fun HalamanLogin(
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // Input username
+                // Input Email
                 OutlinedTextField(
-                    value = uiState.loginDetails.username,
-                    onValueChange = { viewModel.updateUiState(uiState.loginDetails.copy(username = it)) },
-                    label = { Text(text = stringResource(R.string.username))},
+                    value = uiState.loginDetails.email,
+                    onValueChange = { viewModel.updateUiState(uiState.loginDetails.copy(email = it)) },
+                    label = { Text(text = "Email")},
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
@@ -125,18 +125,42 @@ fun HalamanLogin(
                     color = colorResource(R.color.green)
                 )
             }
-            is LoginStatus.Error -> {
-                Text(
-                    text = status.message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 16.dp),
-                    fontWeight = FontWeight.Medium
-                )
-            }
             is LoginStatus.Success -> {
                 onLoginSuccess(status.token)
             }
             else -> {}
         }
+    }
+
+    // AlertDialog untuk Error
+    if (uiState.loginStatus is LoginStatus.Error) {
+        AlertDialog(
+            onDismissRequest = { viewModel.resetLoginStatus() },
+            title = {
+                Text(
+                    text = "Login Gagal",
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(R.color.red)
+                )
+            },
+            text = {
+                Text(
+                    text = (uiState.loginStatus as LoginStatus.Error).message,
+                    fontSize = 16.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.resetLoginStatus() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.green)
+                    )
+                ) {
+                    Text("OK")
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }
