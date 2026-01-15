@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation.Companion.keyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -165,6 +166,7 @@ fun HalamanTambah(
                     CustomInputField("Nama Mata Kuliah (Wajib)",
                         viewModel.namaMk,
                         {
+                            if (it.all { char -> char.isLetter() || char.isWhitespace() } && it.length <= 100)
                             viewModel.namaMk = it
                             viewModel.updateValidasi()
                         },
