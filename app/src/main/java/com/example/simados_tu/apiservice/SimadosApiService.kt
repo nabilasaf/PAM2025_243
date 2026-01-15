@@ -22,7 +22,6 @@ interface SimadosApiService {
         @Body loginRequest: Map<String, String>
     ): LoginResponse
 
-    // Endpoint mengambil semua data master (Butuh Token JWT)
     @GET("master/list")
     suspend fun getMasterList(
         @Header("Authorization") token: String
