@@ -9,7 +9,7 @@ import com.example.simados_tu.repositori.RepositoriSimados
 import com.example.simados_tu.repositori.TokenManager
 import kotlinx.coroutines.launch
 
-// 1. Definisikan State UI (Kembali ke Username)
+// 1. Definisikan State UI
 data class LoginUiState(
     val loginDetails: LoginDetails = LoginDetails(),
     val isEntryValid: Boolean = false,
@@ -17,7 +17,7 @@ data class LoginUiState(
 )
 
 data class LoginDetails(
-    val username: String = "", // Kembali ke username
+    val email: String = "",
     val password: String = ""
 )
 
@@ -45,7 +45,7 @@ class LoginViewModel(
     }
 
     private fun validateInput(details: LoginDetails): Boolean {
-        return details.username.isNotBlank() && details.password.isNotBlank()
+        return details.email.isNotBlank() && details.password.isNotBlank()
     }
 
     fun login() {
@@ -54,9 +54,8 @@ class LoginViewModel(
         viewModelScope.launch {
             uiState = uiState.copy(loginStatus = LoginStatus.Loading)
             try {
-                // Pastikan repositori Anda juga menerima parameter username
                 val response = repositoriSimados.login(
-                    uiState.loginDetails.username,
+                    uiState.loginDetails.email,
                     uiState.loginDetails.password
                 )
 
@@ -69,5 +68,10 @@ class LoginViewModel(
                 )
             }
         }
+    }
+
+    // Fungsi untuk reset status login (dismiss alert)
+    fun resetLoginStatus() {
+        uiState = uiState.copy(loginStatus = LoginStatus.Idle)
     }
 }
