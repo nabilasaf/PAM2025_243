@@ -46,7 +46,7 @@ fun HalamanHome(
     if (showDialog) {
         DialogAkun(
             nama = viewModel.namaStaff,
-            username = viewModel.usernameStaff,
+            email = viewModel.emailStaff,
             onDismiss = { showDialog = false },
             onLogout = {
                 viewModel.logout {
