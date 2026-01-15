@@ -28,7 +28,7 @@ class HomeViewModel(
     var namaStaff by mutableStateOf("Memuat...")
         private set
 
-    var usernameStaff by mutableStateOf("-")
+    var emailStaff by mutableStateOf("-")
         private set
 
     // State untuk teks di Search Bar
@@ -51,7 +51,7 @@ class HomeViewModel(
                     try {
                         val profile = repositoriSimados.getProfile(token)
                         namaStaff = profile.nama_staff
-                        usernameStaff = profile.username
+                        emailStaff = profile.email
                     } catch (e: Exception) {
                         Log.e("HOME_VM", "Error Profile: ${e.message}")
                         namaStaff = "Staff User"
