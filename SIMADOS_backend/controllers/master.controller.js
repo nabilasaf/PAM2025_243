@@ -1,6 +1,5 @@
 const pool = require('../config/db.config');
 
-// Helper function untuk menjalankan transaksi SQL
 const executeTransaction = async (queries) => {
     const connection = await pool.getConnection();
     try {
@@ -20,30 +19,29 @@ const executeTransaction = async (queries) => {
     }
 };
 
-// --- A. CREATE (Tambah Data Simultan) ---
+// CREATE
 exports.createSimultaneousData = async (req, res) => {
-    // Ambil semua field sesuai struktur tabel baru
     const { 
         nim, nama_lengkap, 
         kode_mk, nama_mk, sks, 
         nip_nik, nama_dosen, jabatan 
     } = req.body;
     
-    const input_by_username = req.user.username; 
+    const input_by_email = req.user.email; 
 
     try {
-        // 1. Insert ke transaksi_master untuk dapat id_master
+        // Insert ke tabel transaksi_master terlebih dahulu
         const [masterResult] = await pool.execute(
-            'INSERT INTO transaksi_master (input_by_username) VALUES (?)', 
-            [input_by_username]
+            'INSERT INTO transaksi_master (input_by_email) VALUES (?)', 
+            [input_by_email]
         );
         const id_master = masterResult.insertId;
 
-        // 2. Insert ke 3 tabel detail secara paralel (REQ-TAMBAH-06)
+        // Insert ke tabel
         await Promise.all([
             pool.execute(
                 'INSERT INTO asisten_dosen (id_master, nim, nama_lengkap, status_aktif_asdos) VALUES (?, ?, ?, ?)',
-                [id_master, nim, nama_lengkap, true]
+                [id_master, nim, nama_lengkap, 1] 
             ),
             pool.execute(
                 'INSERT INTO mata_kuliah (id_master, kode_mk, nama_mk, sks) VALUES (?, ?, ?, ?)',
@@ -57,137 +55,86 @@ exports.createSimultaneousData = async (req, res) => {
 
         res.status(201).json({ message: "Data berhasil disimpan ke semua tabel." });
     } catch (error) {
-        res.status(500).json({ message: "Gagal simpan", error: error.message }); // REQ-TAMBAH-09
+        res.status(500).json({ message: "Gagal simpan", error: error.message }); 
     }
 };
-// --- B. READ (Tampil Dashboard Gabungan) ---
+
+// READ ALL
 exports.findAllSimultaneousData = async (req, res) => {
-    // Query JOIN untuk menggabungkan 4 tabel
     const sql = `
-        SELECT
-            TM.id_master,
-            AD.nim, AD.nama_lengkap,
-            MK.kode_mk, MK.nama_mk,
-            DK.nip_nik, DK.nama_dosen,
-            TM.tanggal_transaksi
-        FROM
-            transaksi_master TM
+        SELECT TM.id_master, AD.nim, AD.nama_lengkap, MK.kode_mk, MK.nama_mk, 
+               DK.nip_nik, DK.nama_dosen, TM.tanggal_transaksi
+        FROM transaksi_master TM
         JOIN asisten_dosen AD ON TM.id_master = AD.id_master
         JOIN mata_kuliah MK ON TM.id_master = MK.id_master
         JOIN dosen_koordinator DK ON TM.id_master = DK.id_master
-        ORDER BY TM.tanggal_transaksi DESC
-    `;
+        ORDER BY TM.tanggal_transaksi DESC`;
 
     try {
         const [rows] = await pool.execute(sql);
-        res.status(200).json({ data: rows });
+        res.status(200).json({ data: rows }); 
     } catch (error) {
-        res.status(500).json({ message: "Gagal mengambil data dashboard.", error: error.sqlMessage });
+        res.status(500).json({ message: "Gagal mengambil data dashboard.", error: error.message });
     }
 };
 
-// --- C. DELETE (Hapus Simultan) ---
+// DELETE
 exports.deleteSimultaneousData = async (req, res) => {
-    const { id_master } = req.params;
-    // Cukup hapus dari transaksi_master, ON DELETE CASCADE akan menangani sisanya
-    const sql = 'DELETE FROM transaksi_master WHERE id_master = ?';
-
+    const { id } = req.params; // Menggunakan "id" agar sinkron dengan rute :id
     try {
-        const [result] = await pool.execute(sql, [id_master]);
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Transaksi Master tidak ditemukan." });
-        }
-
-        res.status(204).json({ message: "Data master simultan berhasil dihapus." });
+        const [result] = await pool.execute('DELETE FROM transaksi_master WHERE id_master = ?', [id]);
+        if (result.affectedRows === 0) return res.status(404).json({ message: "Data tidak ditemukan." });
+        res.status(200).json({ message: "Data berhasil dihapus." });
     } catch (error) {
-        res.status(500).json({ message: "Gagal menghapus data.", error: error.sqlMessage });
+        res.status(500).json({ message: "Gagal menghapus data.", error: error.message });
     }
 };
 
-// --- D. READ (Tampil Detail per ID) ---
+// READ DETAIL BY ID
 exports.findSimultaneousDataById = async (req, res) => {
-    const { id_master } = req.params;
-
+    const { id } = req.params;
     const sql = `
-        SELECT
-            AD.*, MK.*, DK.*, TM.tanggal_transaksi
-        FROM
-            transaksi_master TM
+        SELECT AD.*, MK.*, DK.*, TM.tanggal_transaksi
+        FROM transaksi_master TM
         JOIN asisten_dosen AD ON TM.id_master = AD.id_master
         JOIN mata_kuliah MK ON TM.id_master = MK.id_master
         JOIN dosen_koordinator DK ON TM.id_master = DK.id_master
-        WHERE TM.id_master = ?
-    `;
+        WHERE TM.id_master = ?`;
 
     try {
-        const [rows] = await pool.execute(sql, [id_master]);
+        const [rows] = await pool.execute(sql, [id]);
+        if (rows.length === 0) return res.status(404).json({ message: "Data tidak ditemukan." });
         
-        if (rows.length === 0) {
-            return res.status(404).json({ message: "Data detail tidak ditemukan." });
-        }
-        
-        res.status(200).json({ data: rows[0] });
+        res.status(200).json({ data: rows[0] }); 
     } catch (error) {
-        res.status(500).json({ message: "Gagal mengambil data detail.", error: error.sqlMessage });
+        res.status(500).json({ message: "Gagal mengambil detail.", error: error.message });
     }
 };
 
-//--- E. UPDATE (Update Data Simultan) ---
+// UPDATE 
 exports.updateSimultaneousData = async (req, res) => {
-    const { id_master } = req.params;
+    const { id } = req.params;
     const { nim, nama_lengkap, status_aktif_asdos, kode_mk, nama_mk, sks, nip_nik, nama_dosen, jabatan } = req.body;
 
     try {
         const queries = [
-            // 1. Update ASISTEN_DOSEN
             { 
                 sql: 'UPDATE asisten_dosen SET nim=?, nama_lengkap=?, status_aktif_asdos=? WHERE id_master=?', 
-                values: [nim, nama_lengkap, status_aktif_asdos, id_master] 
+                values: [nim, nama_lengkap, status_aktif_asdos, id] 
             },
-            // 2. Update MATA_KULIAH
             { 
                 sql: 'UPDATE mata_kuliah SET kode_mk=?, nama_mk=?, sks=? WHERE id_master=?', 
-                values: [kode_mk, nama_mk, sks, id_master] 
+                values: [kode_mk, nama_mk, sks, id] 
             },
-            // 3. Update DOSEN_KOORDINATOR
             { 
                 sql: 'UPDATE dosen_koordinator SET nip_nik=?, nama_dosen=?, jabatan=? WHERE id_master=?', 
-                values: [nip_nik, nama_dosen, jabatan, id_master] 
+                values: [nip_nik, nama_dosen, jabatan, id] 
             }
         ];
 
-        // Eksekusi semua query dalam satu transaksi database
         await executeTransaction(queries);
-
-        res.status(200).json({ message: "Data master simultan berhasil diperbarui." });
-
+        res.status(200).json({ message: "Data berhasil diperbarui." });
     } catch (error) {
-        console.error("Error updating data:", error);
-        res.status(500).json({ message: "Gagal memperbarui data master. Transaksi dibatalkan.", error: error.sqlMessage || error.message });
-    }
-};
-
-
-exports.getDetailById = async (req, res) => {
-    const { id } = req.params; // Mengambil ID dari URL
-    try {
-        const [rows] = await pool.execute(`
-            SELECT tm.id_master, ad.nim, ad.nama_lengkap, ad.status_aktif_asdos,
-                   mk.kode_mk, mk.nama_mk, mk.sks,
-                   dk.nip_nik, dk.nama_dosen, dk.jabatan
-            FROM transaksi_master tm
-            JOIN asisten_dosen ad ON tm.id_master = ad.id_master
-            JOIN mata_kuliah mk ON tm.id_master = mk.id_master
-            JOIN dosen_koordinator dk ON tm.id_master = dk.id_master
-            WHERE tm.id_master = ?`, [id]);
-
-        if (rows.length > 0) {
-            res.status(200).json(rows[0]); // Kirim data lengkap
-        } else {
-            res.status(404).json({ message: "Data tidak ditemukan" });
-        }
-    } catch (error) {
-        res.status(500).json({ message: "Gagal mengambil detail", error: error.message });
+        res.status(500).json({ message: "Gagal update data.", error: error.message });
     }
 };
