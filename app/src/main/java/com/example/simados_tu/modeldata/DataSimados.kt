@@ -1,5 +1,6 @@
 package com.example.simados_tu.modeldata
 
+import android.provider.ContactsContract
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -36,7 +37,7 @@ data class MasterResponse(
 @Serializable
 data class StaffResponse(
     val nama_staff: String,
-    val username: String,
+    val email: String,
 )
 
 @Serializable
