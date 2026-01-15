@@ -40,7 +40,7 @@ import com.example.simados_tu.R
 @Composable
 fun DialogAkun(
     nama: String,
-    username: String,
+    email: String,
     onDismiss: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -66,7 +66,7 @@ fun DialogAkun(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 InfoAkunItem(Icons.Default.Person, "Nama Lengkap", nama)
-                InfoAkunItem(Icons.Default.Badge, "UserName", username)
+                InfoAkunItem(Icons.Default.Badge, "Email", email)
                 InfoAkunItem(Icons.Default.Security, "Role", "Staff TU")
 
                 Spacer(modifier = Modifier.height(16.dp))
