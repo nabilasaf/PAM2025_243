@@ -80,9 +80,9 @@ exports.findAllSimultaneousData = async (req, res) => {
 
 // DELETE
 exports.deleteSimultaneousData = async (req, res) => {
-    const { id } = req.params; // Menggunakan "id" agar sinkron dengan rute :id
+    const { id_master } = req.params;
     try {
-        const [result] = await pool.execute('DELETE FROM transaksi_master WHERE id_master = ?', [id]);
+        const [result] = await pool.execute('DELETE FROM transaksi_master WHERE id_master = ?', [id_master]);
         if (result.affectedRows === 0) return res.status(404).json({ message: "Data tidak ditemukan." });
         res.status(200).json({ message: "Data berhasil dihapus." });
     } catch (error) {
@@ -92,7 +92,7 @@ exports.deleteSimultaneousData = async (req, res) => {
 
 // READ DETAIL BY ID
 exports.findSimultaneousDataById = async (req, res) => {
-    const { id } = req.params;
+    const { id_master } = req.params;
     const sql = `
         SELECT AD.*, MK.*, DK.*, TM.tanggal_transaksi
         FROM transaksi_master TM
@@ -102,7 +102,7 @@ exports.findSimultaneousDataById = async (req, res) => {
         WHERE TM.id_master = ?`;
 
     try {
-        const [rows] = await pool.execute(sql, [id]);
+        const [rows] = await pool.execute(sql, [id_master]);
         if (rows.length === 0) return res.status(404).json({ message: "Data tidak ditemukan." });
         
         res.status(200).json({ data: rows[0] }); 
@@ -113,22 +113,22 @@ exports.findSimultaneousDataById = async (req, res) => {
 
 // UPDATE 
 exports.updateSimultaneousData = async (req, res) => {
-    const { id } = req.params;
+    const { id_master } = req.params;
     const { nim, nama_lengkap, status_aktif_asdos, kode_mk, nama_mk, sks, nip_nik, nama_dosen, jabatan } = req.body;
 
     try {
         const queries = [
             { 
                 sql: 'UPDATE asisten_dosen SET nim=?, nama_lengkap=?, status_aktif_asdos=? WHERE id_master=?', 
-                values: [nim, nama_lengkap, status_aktif_asdos, id] 
+                values: [nim, nama_lengkap, status_aktif_asdos, id_master] 
             },
             { 
                 sql: 'UPDATE mata_kuliah SET kode_mk=?, nama_mk=?, sks=? WHERE id_master=?', 
-                values: [kode_mk, nama_mk, sks, id] 
+                values: [kode_mk, nama_mk, sks, id_master] 
             },
             { 
                 sql: 'UPDATE dosen_koordinator SET nip_nik=?, nama_dosen=?, jabatan=? WHERE id_master=?', 
-                values: [nip_nik, nama_dosen, jabatan, id] 
+                values: [nip_nik, nama_dosen, jabatan, id_master] 
             }
         ];
 

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const masterRoutes = require('./routes/master.routes');
@@ -24,7 +25,7 @@ pool.getConnection()
     .catch(err => {
         console.error("Database connection failed:", err.message);
     });
-    
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 });
