@@ -58,8 +58,24 @@ data class UpdateUiState(
     val jabatan: String = "",
     val status_aktif_asdos: Int = 1,
     val isEntryValid: Boolean = false,
-    val errorMessage: String? = null
-)
+    val errorMessage: String? = null,
+    // Data original untuk tracking perubahan
+    val originalData: UpdateUiState? = null
+) {
+    // Fungsi untuk cek apakah ada perubahan data
+    fun hasDataChanged(): Boolean {
+        if (originalData == null) return false
+        return nim != originalData.nim ||
+                nama_lengkap != originalData.nama_lengkap ||
+                kode_mk != originalData.kode_mk ||
+                nama_mk != originalData.nama_mk ||
+                sks != originalData.sks ||
+                nip_nik != originalData.nip_nik ||
+                nama_dosen != originalData.nama_dosen ||
+                jabatan != originalData.jabatan ||
+                status_aktif_asdos != originalData.status_aktif_asdos
+    }
+}
 fun MasterResponse.toUpdateUiState(): UpdateUiState = UpdateUiState(
     id_master = id_master,
     nim = nim,
