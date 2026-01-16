@@ -11,17 +11,18 @@ interface AppContainer {
 
 class SimadosContainer(private val context: Context) : AppContainer {
 
-    // 1. Koneksi ke Backend (ApiService)
-    private val simadosApiService: SimadosApiService by lazy {
-        SimadosClient.service
-    }
-
-    // 2. Repositori untuk ambil data dari Backend
-    override val repositoriSimados: RepositoriSimados by lazy {
-        NetworkRepositoriSimados(simadosApiService)
-    }
-    // 3. TokenManager untuk simpan Token
+    // 1. TokenManager untuk simpan Token (harus dibuat dulu)
     override val tokenManager: TokenManager by lazy {
         TokenManager(context)
+    }
+
+    // 2. Koneksi ke Backend (ApiService)
+    private val simadosApiService: SimadosApiService by lazy {
+        SimadosClient.create(tokenManager)
+    }
+
+    // 3. Repositori untuk ambil data dari Backend
+    override val repositoriSimados: RepositoriSimados by lazy {
+        NetworkRepositoriSimados(simadosApiService)
     }
 }
