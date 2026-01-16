@@ -126,7 +126,10 @@ fun HalamanLogin(
                 )
             }
             is LoginStatus.Success -> {
-                onLoginSuccess(status.token)
+                // LaunchedEffect memastikan navigasi hanya dipanggil sekali
+                androidx.compose.runtime.LaunchedEffect(status.token) {
+                    onLoginSuccess(status.token)
+                }
             }
             else -> {}
         }
