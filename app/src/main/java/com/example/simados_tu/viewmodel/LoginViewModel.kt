@@ -45,7 +45,11 @@ class LoginViewModel(
     }
 
     private fun validateInput(details: LoginDetails): Boolean {
-        return details.email.isNotBlank() && details.password.isNotBlank()
+        // Validasi format email yang lebih permissive
+        val emailPattern = "[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+        return details.email.isNotBlank() && 
+               details.password.isNotBlank() &&
+               details.email.matches(emailPattern.toRegex())
     }
 
     fun login() {
@@ -62,7 +66,27 @@ class LoginViewModel(
                 tokenManager.saveToken(response.token)
 
                 uiState = uiState.copy(loginStatus = LoginStatus.Success(response.token))
+            } catch (e: retrofit2.HttpException) {
+                // Handle HTTP errors
+                val errorMessage = when (e.code()) {
+                    401 -> "Email atau password salah"
+                    404 -> "Endpoint tidak ditemukan"
+                    500 -> "Server error, coba lagi nanti"
+                    else -> "Error: ${e.message()}"
+                }
+                uiState = uiState.copy(loginStatus = LoginStatus.Error(errorMessage))
+            } catch (e: java.net.UnknownHostException) {
+                // Handle network errors
+                uiState = uiState.copy(
+                    loginStatus = LoginStatus.Error("Tidak dapat terhubung ke server")
+                )
+            } catch (e: kotlinx.serialization.SerializationException) {
+                // Handle JSON parsing errors
+                uiState = uiState.copy(
+                    loginStatus = LoginStatus.Error("Format data tidak sesuai")
+                )
             } catch (e: Exception) {
+                // Handle other errors
                 uiState = uiState.copy(
                     loginStatus = LoginStatus.Error(e.message ?: "Login Gagal")
                 )
