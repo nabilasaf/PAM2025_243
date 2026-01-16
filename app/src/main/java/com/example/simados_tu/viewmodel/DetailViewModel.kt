@@ -39,25 +39,22 @@ class DetailViewModel(
         viewModelScope.launch {
             uiState = DetailUiState.Loading
             try {
-                val token = tokenManager.getToken.first()
-                if (token != null) {
-                    val result = repositoriSimados.getDetailById(token, idMaster)
-                    uiState = DetailUiState.Success(result)
-                }
+                val result = repositoriSimados.getDetailById(idMaster)
+                uiState = DetailUiState.Success(data = result)
             } catch (e: Exception) {
-                uiState = DetailUiState.Error("Gagal memuat detail: ${e.message}")
+                uiState = DetailUiState.Error(
+                    message = "Gagal memuat detail: ${e.message}"
+                )
             }
         }
     }
 
+
     fun hapusData(onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
-                val token = tokenManager.getToken.first()
-                if (token != null) {
-                    repositoriSimados.deleteMaster(token, idMaster)
-                    onSuccess()
-                }
+                repositoriSimados.deleteMaster(idMaster)
+                onSuccess()
             } catch (e: Exception) {
                 // Log error hapus jika diperlukan
             }
