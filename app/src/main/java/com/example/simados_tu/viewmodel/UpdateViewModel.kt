@@ -34,17 +34,14 @@ class UpdateViewModel(
     private fun loadDataLama() {
         viewModelScope.launch {
             try {
-                val token = tokenManager.getToken.first()
-                if (token != null) {
-                    val data = repositoriSimados.getDetailById(token, idMaster)
-                    // Konversi data master ke UI state
-                    val loadedState = data.toUpdateUiState()
-                    // Simpan sebagai originalData untuk tracking perubahan
-                    uiState = loadedState.copy(
-                        originalData = loadedState,
-                        isEntryValid = false  // Awalnya false karena belum ada perubahan
-                    )
-                }
+                val data = repositoriSimados.getDetailById(idMaster)
+                // Konversi data master ke UI state
+                val loadedState = data.toUpdateUiState()
+                // Simpan sebagai originalData untuk tracking perubahan
+                uiState = loadedState.copy(
+                    originalData = loadedState,
+                    isEntryValid = false  // Awalnya false karena belum ada perubahan
+                )
             } catch (e: Exception) {
                 uiState = uiState.copy(errorMessage = "Gagal memuat data lama: ${e.message}")
             }
@@ -81,23 +78,20 @@ class UpdateViewModel(
 
         viewModelScope.launch {
             try {
-                val token = tokenManager.getToken.first()
-                if (token != null) {
-                    val body = mapOf(
-                        "nim" to uiState.nim,
-                        "nama_lengkap" to uiState.nama_lengkap,
-                        "kode_mk" to uiState.kode_mk,
-                        "nama_mk" to uiState.nama_mk,
-                        "sks" to uiState.sks,
-                        "nip_nik" to uiState.nip_nik,
-                        "nama_dosen" to uiState.nama_dosen,
-                        "jabatan" to uiState.jabatan,
-                        "status_aktif_asdos" to uiState.status_aktif_asdos.toString()
-                    )
-                    // Eksekusi request PUT
-                    repositoriSimados.updateMaster(token, idMaster, body)
-                    onSuccess() // Navigasi kembali
-                }
+                val body = mapOf(
+                    "nim" to uiState.nim,
+                    "nama_lengkap" to uiState.nama_lengkap,
+                    "kode_mk" to uiState.kode_mk,
+                    "nama_mk" to uiState.nama_mk,
+                    "sks" to uiState.sks,
+                    "nip_nik" to uiState.nip_nik,
+                    "nama_dosen" to uiState.nama_dosen,
+                    "jabatan" to uiState.jabatan,
+                    "status_aktif_asdos" to uiState.status_aktif_asdos.toString()
+                )
+                // Eksekusi request PUT
+                repositoriSimados.updateMaster(idMaster, body)
+                onSuccess() // Navigasi kembali
             } catch (e: Exception) {
                 //Menampilkan pesan kesalahan jika gagal
                 uiState = uiState.copy(errorMessage = "Gagal memperbarui data: ${e.message}")
