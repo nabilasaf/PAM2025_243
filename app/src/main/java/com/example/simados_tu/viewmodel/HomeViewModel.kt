@@ -46,17 +46,13 @@ class HomeViewModel(
     // Fungsi READ Profil (REQ-AKUN-02)
     private fun getProfileData() {
         viewModelScope.launch {
-            tokenManager.getToken.collect { token ->
-                if (token != null) {
-                    try {
-                        val profile = repositoriSimados.getProfile(token)
-                        namaStaff = profile.nama_staff
-                        emailStaff = profile.email
-                    } catch (e: Exception) {
-                        Log.e("HOME_VM", "Error Profile: ${e.message}")
-                        namaStaff = "Staff User"
-                    }
-                }
+            try {
+                val profile = repositoriSimados.getProfile()
+                namaStaff = profile.nama_staff
+                emailStaff = profile.email
+            } catch (e: Exception) {
+                Log.e("HOME_VM", "Error Profile: ${e.message}")
+                namaStaff = "Staff User"
             }
         }
     }
@@ -64,18 +60,12 @@ class HomeViewModel(
     fun getMasterList() {
         viewModelScope.launch {
             homeUiState = HomeUiState.Loading
-            tokenManager.getToken.collect { token ->
-                if (token != null) {
-                    try {
-                        val result = repositoriSimados.getMasterList(token)
-                        allMasterData = result // Simpan ke backup
-                        homeUiState = HomeUiState.Success(result)
-                    } catch (e: Exception) {
-                        homeUiState = HomeUiState.Error("Gagal mengambil data: ${e.message}")
-                    }
-                } else {
-                    homeUiState = HomeUiState.Error("Sesi habis, silakan login kembali")
-                }
+            try {
+                val result = repositoriSimados.getMasterList()
+                allMasterData = result // Simpan ke backup
+                homeUiState = HomeUiState.Success(result)
+            } catch (e: Exception) {
+                homeUiState = HomeUiState.Error("Gagal mengambil data: ${e.message}")
             }
         }
     }
