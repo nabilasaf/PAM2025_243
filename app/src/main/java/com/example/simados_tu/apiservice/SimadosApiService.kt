@@ -16,43 +16,35 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface SimadosApiService {
-    // Endpoint Login
+
     @POST("auth/login")
     suspend fun login(
-        @Body loginRequest: Map<String, String>
+        @Body body: Map<String, String>
     ): LoginResponse
 
     @GET("master/list")
-    suspend fun getMasterList(
-        @Header("Authorization") token: String
-    ): AllMasterResponse
+    suspend fun getMasterList(): AllMasterResponse
 
     @GET("master/profile")
-    suspend fun getProfile(
-        @Header("Authorization") token: String
-    ): StaffResponse
+    suspend fun getProfile(): StaffResponse
 
-    //Kirim request POST ke backend dengan format JSON
     @POST("master/create")
     suspend fun insertMaster(
-        @Header("Authorization") token: String,
-        @Body data: Map<String, String> // Mengirim JSON objek
+        @Body data: Map<String, String>
     ): Response<Unit>
 
     @GET("master/detail/{id}")
     suspend fun getDetailMaster(
-        @Header("Authorization") token: String,
         @Path("id") id: Int
-    ): DetailResponse// Mengembalikan objek MasterResponse
+    ): DetailResponse
+
     @DELETE("master/delete/{id}")
     suspend fun deleteMaster(
-        @Header("Authorization") token: String,
         @Path("id") id: Int
-    ): retrofit2.Response<okhttp3.ResponseBody>
+    ): Response<ResponseBody>
 
     @PUT("master/update/{id}")
     suspend fun updateMaster(
-        @Header("Authorization") token: String,
         @Path("id") id: Int,
         @Body data: Map<String, String>
     ): Response<ResponseBody>
