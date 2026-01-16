@@ -13,7 +13,13 @@ data class AllMasterResponse(
 data class LoginResponse(
     val message: String,
     val token: String,
-    val user: String
+    val user: UserData
+)
+
+@Serializable
+data class UserData(
+    val email: String,
+    val nama_staff: String
 )
 
 // Untuk data Master (Asdos, MK, Dosen)
