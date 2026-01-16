@@ -88,24 +88,17 @@ class TambahViewModel(
             isLoading = true
             errorMessage = null // Reset error sebelum mencoba simpan
             try {
-                // Mengambil token terbaru dari DataStore
-                val token = tokenManager.getToken.first()
-                if (token != null) {
-                    repositoriSimados.insertMaster(
-                        token = token,
-                        nim = nim,
-                        namaAsdos = namaAsdos,
-                        kodeMk = kodeMk,
-                        namaMk = namaMk,
-                        sks = sks,
-                        nipNik = nipNik,
-                        namaDosen = namaDosen,
-                        jabatan = jabatan
-                    )
-                    onSuccess() // REQ-TAMBAH-07: Kembali ke dashboard jika berhasil
-                } else {
-                    errorMessage = "Sesi habis, silakan login kembali."
-                }
+                repositoriSimados.insertMaster(
+                    nim = nim,
+                    namaAsdos = namaAsdos,
+                    kodeMk = kodeMk,
+                    namaMk = namaMk,
+                    sks = sks,
+                    nipNik = nipNik,
+                    namaDosen = namaDosen,
+                    jabatan = jabatan
+                )
+                onSuccess() // REQ-TAMBAH-07: Kembali ke dashboard jika berhasil
             } catch (e: Exception) {
                 // REQ-TAMBAH-09: Tampilkan pesan error jika server menolak (misal: NIM Duplikat)
                 errorMessage = "Gagal simpan: ${e.message}"
